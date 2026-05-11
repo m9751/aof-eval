@@ -1,101 +1,127 @@
-import Image from "next/image";
+import { supabase, type EvalRun, type EvalSession } from "@/lib/supabase";
+import { RuleAdherenceChart } from "@/components/RuleAdherenceChart";
+import { CostTrendChart } from "@/components/CostTrendChart";
+import { SessionTable } from "@/components/SessionTable";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+async function getData(): Promise<{
+  runs: EvalRun[];
+  sessions: EvalSession[];
+}> {
+  const [runsResult, sessionsResult] = await Promise.all([
+    supabase.from("runs").select("*").order("run_ts", { ascending: false }).limit(20),
+    supabase
+      .from("sessions")
+      .select(
+        "id, run_id, session_date, handoff_path, machine, rule_adherence_score, plan_delivery_score, session_cost_usd, composite_score, created_at"
+      )
+      .gte(
+        "session_date",
+        new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      )
+      .order("session_date", { ascending: false }),
+  ]);
+
+  return {
+    runs: (runsResult.data ?? []) as EvalRun[],
+    sessions: (sessionsResult.data ?? []) as EvalSession[],
+  };
+}
+
+export default async function Page() {
+  const { runs, sessions } = await getData();
+  const latest = runs[0];
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <main className="max-w-6xl mx-auto p-6 space-y-8">
+      <header className="border-b border-slate-200 pb-4">
+        <h1 className="text-2xl font-bold text-slate-900">
+          AOF Eval Harness
+        </h1>
+        <p className="text-sm text-slate-600 mt-1">
+          Self-applied measurement of the Agent Operating Framework. Grades
+          rule adherence, plan→delivery gap, cost, and dispatch quality across
+          every Claude Code session.
+        </p>
+        <p className="text-xs text-slate-500 mt-2">
+          {latest
+            ? `Last run: ${new Date(latest.run_ts).toLocaleString()} · ${latest.sessions_graded} sessions · harness ${latest.harness_version} · aof ${latest.aof_version}`
+            : "No runs yet."}
+        </p>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      {latest && (
+        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Stat label="Sessions" value={latest.sessions_graded} />
+          <Stat label="Mean rule" value={fmt(latest.mean_rule_adherence)} />
+          <Stat
+            label="Mean plan→delivery"
+            value={fmt(latest.mean_plan_delivery)}
           />
-          Learn
-        </a>
+          <Stat label="Mean composite" value={fmt(latest.mean_composite)} />
+        </section>
+      )}
+
+      <section>
+        <h2 className="text-lg font-semibold mb-2 text-slate-900">
+          Rule adherence (14d)
+        </h2>
+        <RuleAdherenceChart sessions={sessions} />
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold mb-2 text-slate-900">
+          Session cost (14d)
+        </h2>
+        <CostTrendChart sessions={sessions} />
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold mb-2 text-slate-900">
+          Sessions
+        </h2>
+        <SessionTable sessions={sessions} />
+      </section>
+
+      <footer className="text-xs text-slate-500 border-t border-slate-200 pt-4">
+        Data live from{" "}
         <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="https://github.com/m9751/smokin-ops"
+          className="underline hover:text-slate-700"
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
+          smokin-ops eval schema
         </a>
+        . Harness source:{" "}
         <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="https://github.com/m9751/agent-operating-framework/tree/aof-eval-harness-v1/examples/evals"
+          className="underline hover:text-slate-700"
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
+          agent-operating-framework / examples/evals
         </a>
+        .
       </footer>
+    </main>
+  );
+}
+
+function fmt(n: number | null | undefined): string {
+  return n === null || n === undefined ? "—" : Number(n).toFixed(2);
+}
+
+function Stat({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number | undefined | null;
+}) {
+  return (
+    <div className="rounded border border-slate-200 p-3 bg-white">
+      <div className="text-xs text-slate-500">{label}</div>
+      <div className="text-xl font-semibold text-slate-900">
+        {value ?? "—"}
+      </div>
     </div>
   );
 }

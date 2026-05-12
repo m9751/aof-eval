@@ -15,7 +15,7 @@ async function getData(): Promise<{
     supabase
       .from("sessions")
       .select(
-        "id, run_id, session_date, handoff_path, machine, rule_adherence_score, plan_delivery_score, session_cost_usd, composite_score, created_at"
+        "id, run_id, session_date, machine, rule_adherence_score, plan_delivery_score, session_cost_usd, composite_score, created_at"
       )
       .gte(
         "session_date",

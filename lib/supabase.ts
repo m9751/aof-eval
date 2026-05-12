@@ -31,7 +31,6 @@ export type EvalSession = {
   id: string;
   run_id: string;
   session_date: string;
-  handoff_path: string;
   machine: "mac" | "win" | "unknown";
   rule_adherence_score: number | null;
   plan_delivery_score: number | null;

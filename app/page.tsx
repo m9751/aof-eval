@@ -2,6 +2,7 @@ import { supabase, type EvalRun, type EvalSession } from "@/lib/supabase";
 import { RuleAdherenceChart } from "@/components/RuleAdherenceChart";
 import { CostTrendChart } from "@/components/CostTrendChart";
 import { SessionTable } from "@/components/SessionTable";
+import { SourceLinks } from "@/components/SourceLinks";
 
 export const dynamic = "force-dynamic";
 
@@ -84,23 +85,7 @@ export default async function Page() {
         <SessionTable sessions={sessions} />
       </section>
 
-      <footer className="text-xs text-slate-500 border-t border-slate-200 pt-4">
-        Data live from{" "}
-        <a
-          href="https://github.com/m9751/smokin-ops"
-          className="underline hover:text-slate-700"
-        >
-          smokin-ops eval schema
-        </a>
-        . Harness source:{" "}
-        <a
-          href="https://github.com/m9751/agent-operating-framework/tree/aof-eval-harness-v1/examples/evals"
-          className="underline hover:text-slate-700"
-        >
-          agent-operating-framework / examples/evals
-        </a>
-        .
-      </footer>
+      <SourceLinks />
     </main>
   );
 }

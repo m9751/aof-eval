@@ -7,6 +7,9 @@ export async function GET() {
   const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
     .toISOString()
     .slice(0, 10);
+  // Explicit columns only — never SELECT *. The `handoff_path` column was
+  // intentionally removed because it exposed local filesystem paths and
+  // account-identifying filenames on this public endpoint.
   const { data, error } = await supabase
     .from("sessions")
     .select(

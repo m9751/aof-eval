@@ -24,7 +24,6 @@ export type EvalRun = {
   aof_version: string;
   trigger_kind: "manual" | "cron" | "backfill";
   github_run_id: string | null;
-  notes: string | null;
 };
 
 export type EvalSession = {

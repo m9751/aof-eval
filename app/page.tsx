@@ -64,6 +64,22 @@ export default async function Page() {
         </section>
       )}
 
+      {latest && (
+        <section className="rounded border border-amber-200 bg-amber-50 p-3 text-xs text-slate-700">
+          <strong className="font-semibold text-slate-900">
+            How to read these numbers.
+          </strong>{" "}
+          Scores run 0–10. They are uncalibrated against any external
+          benchmark — there is no public dataset of AOF-style framework
+          adherence to compare against. The absolute number isn&apos;t the
+          signal; <strong>the slope over future runs is.</strong> v1.5 is the
+          baseline. If a future v1.6 holds at 9.20 it&apos;s working; if it
+          drops to 8.5 after a refactor, the refactor broke something. Click
+          into the session table below to see which individual sessions
+          dragged the average down — that&apos;s where the learning is.
+        </section>
+      )}
+
       <section>
         <h2 className="text-lg font-semibold mb-2 text-slate-900">
           Rule adherence (14d)

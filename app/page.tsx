@@ -3,14 +3,17 @@ import { RuleAdherenceChart } from "@/components/RuleAdherenceChart";
 import { CostTrendChart } from "@/components/CostTrendChart";
 import { SessionTable } from "@/components/SessionTable";
 import { SourceLinks } from "@/components/SourceLinks";
+import { RulesScoreboard } from "@/components/RulesScoreboard";
+import { DpmoChart } from "@/components/DpmoChart";
 
 export const dynamic = "force-dynamic";
 
 async function getData(): Promise<{
   runs: EvalRun[];
   sessions: EvalSession[];
+  rules: Awaited<ReturnType<typeof fetchRules>>;
 }> {
-  const [runsResult, sessionsResult] = await Promise.all([
+  const [runsResult, sessionsResult, rules] = await Promise.all([
     supabase.from("runs").select("*").order("run_ts", { ascending: false }).limit(20),
     supabase
       .from("sessions")
@@ -22,16 +25,30 @@ async function getData(): Promise<{
         new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
       )
       .order("session_date", { ascending: false }),
+    fetchRules(),
   ]);
 
   return {
     runs: (runsResult.data ?? []) as EvalRun[],
     sessions: (sessionsResult.data ?? []) as EvalSession[],
+    rules,
   };
 }
 
+async function fetchRules() {
+  try {
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const res = await fetch(`${base}/api/rules`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.rules ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function Page() {
-  const { runs, sessions } = await getData();
+  const { runs, sessions, rules } = await getData();
   const latest = runs[0];
 
   return (
@@ -99,6 +116,20 @@ export default async function Page() {
           Sessions
         </h2>
         <SessionTable sessions={sessions} />
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold mb-2 text-slate-900">
+          Rules Scoreboard — opportunity counts per rule
+        </h2>
+        <RulesScoreboard rules={rules} />
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold mb-2 text-slate-900">
+          DPMO denominator — 30d opportunity distribution
+        </h2>
+        <DpmoChart rules={rules} />
       </section>
 
       <SourceLinks />

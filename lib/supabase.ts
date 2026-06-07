@@ -37,3 +37,21 @@ export type EvalSession = {
   composite_score: number | null;
   created_at: string;
 };
+
+export type EvalRule = {
+  rule_id: string;
+  rule_name: string;
+  rule_type: "hook" | "skill" | "behavioral" | "rule_file";
+  repo: string;
+  lifecycle_state: "proposed" | "active" | "mature" | "declining" | "retired";
+  load_bearing_rare: boolean;
+  denominator_type: string | null;
+  provenance_event: string | null;
+};
+
+// Disclosure constant — rendered programmatically on every DPMO output.
+export const DPMO_DISCLOSURE =
+  "Rate-normalized signal, not causal proof — windows may be confounded by concurrent rule changes, sample size, or work-type mix.";
+
+// n-threshold: suppress DPMO % when opportunities < 30 in window.
+export const DPMO_MIN_N = 30;

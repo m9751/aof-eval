@@ -1,4 +1,4 @@
-import { supabase, type EvalRun, type EvalSession } from "@/lib/supabase";
+import { supabase, DPMO_MIN_N, type EvalRun, type EvalSession } from "@/lib/supabase";
 import { RuleAdherenceChart } from "@/components/RuleAdherenceChart";
 import { CostTrendChart } from "@/components/CostTrendChart";
 import { SessionTable } from "@/components/SessionTable";
@@ -36,15 +36,51 @@ async function getData(): Promise<{
 }
 
 async function fetchRules() {
-  try {
-    const base = process.env.NEXT_PUBLIC_APP_URL ?? "";
-    const res = await fetch(`${base}/api/rules`, { cache: "no-store" });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.rules ?? [];
-  } catch {
-    return [];
-  }
+  // Query Supabase directly — server-side relative fetch("/api/rules") has no
+  // base URL in SSR and silently returns [] when NEXT_PUBLIC_APP_URL is unset.
+  const { createClient } = await import("@supabase/supabase-js");
+  const client = createClient(
+    process.env.NEXT_PUBLIC_SMOKIN_OPS_URL!,
+    process.env.NEXT_PUBLIC_SMOKIN_OPS_ANON_KEY!,
+    { auth: { persistSession: false }, db: { schema: "eval" } }
+  );
+  const windows = [7, 30, 60];
+  const now = new Date();
+
+  const [rulesResult, ...windowResults] = await Promise.all([
+    client
+      .from("rules")
+      .select(
+        "rule_id, rule_name, rule_type, repo, lifecycle_state, load_bearing_rare, denominator_type, provenance_event"
+      )
+      .eq("lifecycle_state", "active")
+      .order("rule_id"),
+    ...windows.map((days) => {
+      const since = new Date(now.getTime() - days * 86400000)
+        .toISOString()
+        .slice(0, 10);
+      return client.from("opportunities").select("rule_id").gte("session_date", since);
+    }),
+  ]);
+
+  if (rulesResult.error || !rulesResult.data) return [];
+
+  const counts: Record<string, Record<number, number>> = {};
+  windows.forEach((days, idx) => {
+    const rows = windowResults[idx].data ?? [];
+    for (const row of rows) {
+      if (!counts[row.rule_id]) counts[row.rule_id] = {};
+      counts[row.rule_id][days] = (counts[row.rule_id][days] ?? 0) + 1;
+    }
+  });
+
+  return rulesResult.data.map((r) => ({
+    ...r,
+    windows: windows.map((days) => {
+      const n = counts[r.rule_id]?.[days] ?? 0;
+      return { days, n, suppressed: n < DPMO_MIN_N };
+    }),
+  }));
 }
 
 export default async function Page() {

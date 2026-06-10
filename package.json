@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:causal": "bash scripts/lint-banned-causal-tokens.sh components/ app/ lib/",
+    "test:dc8": "bash tests/dc8-banned-token-lint.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",

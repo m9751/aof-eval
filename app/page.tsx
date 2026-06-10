@@ -1,4 +1,4 @@
-import { supabase, DPMO_MIN_N, type EvalRun, type EvalSession } from "@/lib/supabase";
+import { supabase, DPMO_MIN_N, DPMO_DISCLOSURE, type EvalRun, type EvalSession } from "@/lib/supabase";
 import { RuleAdherenceChart } from "@/components/RuleAdherenceChart";
 import { CostTrendChart } from "@/components/CostTrendChart";
 import { SessionTable } from "@/components/SessionTable";

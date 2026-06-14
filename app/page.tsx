@@ -5,6 +5,7 @@ import { SessionTable } from "@/components/SessionTable";
 import { SourceLinks } from "@/components/SourceLinks";
 import { RulesScoreboard } from "@/components/RulesScoreboard";
 import { DpmoChart } from "@/components/DpmoChart";
+import { CurrentVsBaseline } from "@/components/CurrentVsBaseline";
 
 export const dynamic = "force-dynamic";
 
@@ -226,6 +227,19 @@ export default async function Page() {
           </section>
         </>
       )}
+
+      {/* ── CURRENT vs BASELINE — latest run delta ──────────────────────────── */}
+      <CurrentVsBaseline
+        latestRun={runs[0] ?? null}
+        baseline={{
+          label: V1_BASELINE.label,
+          runDate: V1_BASELINE.runDate,
+          sessions: V1_BASELINE.sessions,
+          meanComposite: V1_BASELINE.meanComposite,
+          meanRule: V1_BASELINE.meanRule,
+          meanPlanDelivery: V1_BASELINE.meanPlanDelivery,
+        }}
+      />
 
       {/* ── V1.5 HISTORICAL BASELINE ─────────────────────────────────────────── */}
       <section className="rounded border border-slate-200 bg-slate-50 p-4">

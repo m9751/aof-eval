@@ -1,0 +1,12 @@
+{
+  "name": "aof-eval",
+  "type": "nextjs-dashboard",
+  "description": "Public AOF self-eval dashboard reading the smokin-ops eval schema.",
+  "entry": "app/",
+  "authority": "AGENTS.md",
+  "language": "typescript",
+  "framework": "nextjs-app-router",
+  "deploy": "vercel",
+  "data_source": { "project": "smokin-ops", "schema": "eval", "access": "read-only" },
+  "reviewers": ["typescript-reviewer", "nextjs-reviewer"]
+}

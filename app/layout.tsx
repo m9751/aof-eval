@@ -17,7 +17,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "AOF Eval Harness",
+  title: "AOF Self-Evaluation Dashboard",
   description:
     "Self-applied evaluation of the Agent Operating Framework. Grades rule adherence, plan-delivery gap, cost, and dispatch quality per Claude Code session.",
 };

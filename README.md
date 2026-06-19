@@ -1,10 +1,37 @@
 # AOF Eval Dashboard
 
-Public-facing dashboard for the [Agent Operating Framework](https://github.com/m9751/agent-operating-framework) self-applied evaluation harness.
+**Public credibility dashboard for the Agent Operating Framework self-eval harness — read-only, on the open internet by design.**
 
-**Live:** https://aof-eval.vercel.app/
+A Next.js (App Router) dashboard for the [Agent Operating Framework](https://github.com/m9751/agent-operating-framework) self-applied evaluation harness. Reads the `eval` schema of the smokin-ops Supabase project and renders rule-adherence trends, plan-delivery gap, cost, and composite scores across the framework author's daily Claude Code sessions. **Live:** https://aof-eval.vercel.app/
 
-Reads from the `eval` schema of the smokin-ops Supabase project. Renders rule-adherence trends, plan-delivery gap, cost, and composite scores across the framework author's daily Claude Code sessions.
+## Where to start
+
+| If you are asking… | Start here |
+|---|---|
+| "What is this and what are the rules?" | `AGENTS.md` (routing + hard rules) → `CLAUDE.md` (behavioral notes) |
+| "What's the current state / open work?" | `STATUS.md` |
+| "How do I run / build / lint it?" | `## Quick start` below, or `make help` |
+| "What's safe to expose publicly?" | "What's public" + "What's protected" below — load-bearing |
+| "What must I NOT change?" | "Things the next maintainer must NOT change" below |
+| "Where's the data layer / API?" | `lib/` (Supabase client), `app/api/` (routes) |
+
+## Quick start
+
+```bash
+make install     # npm install
+make dev         # next dev (local)
+make lint        # next lint + banned-token checks
+make build       # next build
+```
+
+`make help` lists all targets. The **Makefile is the canonical command front door** — it wraps the `package.json` scripts so agents and humans have one place to look.
+
+## For Claude landing here (read before editing)
+
+1. **Pull first.** `git pull` before editing — this repo syncs across machines.
+2. **This is a PUBLIC credibility surface.** Treat every change to `app/api/*` as a data-exposure decision (see AGENTS.md hard rule #1 + the invariants below), not just a code change.
+3. **Read-only on Supabase.** This repo never writes to the `eval` schema and never holds the service-role key. Do not add a write path.
+4. **Branch + PR for every change.** No direct push to `main`.
 
 ## What's public
 

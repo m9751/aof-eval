@@ -16,7 +16,13 @@ build:		## next build
 start:		## next start (serve build)
 	npm run start
 
-lint:		## next lint + banned-token checks
-	npm run lint && npm run lint:causal && npm run test:dc8
+check:		## banned-token checks (no node_modules needed — always runnable)
+	npm run lint:causal && npm run test:dc8
 
-test: lint	## alias for lint (no unit-test suite; lint is the gate)
+lint: check	## next lint (needs node_modules) + the banned-token checks
+	npm run lint
+
+verify: check	## the cold-agent verify gate: runs without install. Use 'make lint' once deps are installed.
+	@echo "verify: banned-token gate passed. Run 'make install && make lint' for the full Next.js lint."
+
+test: verify	## alias for verify (no unit-test suite; the banned-token gate + next lint are the gates)

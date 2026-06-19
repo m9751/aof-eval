@@ -62,7 +62,7 @@ The same Supabase anon key reaches several schemas via PostgREST. The following 
 If you (or future-me) are editing this repo, these invariants are load-bearing for the public-safety posture:
 
 1. **Never `SELECT *`** from `eval.runs` or `eval.sessions` in API routes. The column list is the exposure budget — `*` re-leaks anything added later.
-2. **Never add a `"use client"` directive** to any file that imports from `lib/supabase.ts`. Doing so will bundle the anon key into the public JS payload.
+2. **Never import the Supabase CLIENT or anon key into a `"use client"` file.** That bundles the key into the public JS payload. (Importing only non-secret *constants* or `type`-only exports from `lib/supabase.ts` into a client component is safe — types erase at compile time, constants aren't secrets. E.g. `DPMO_DISCLOSURE`, `DPMO_MIN_N`, `type EvalRule` are fine; the `supabase` client and the key are not.)
 3. **Never add `handoff_path` or `notes`** to the API SELECT lists. They are the two known leak vectors.
 4. **Never weaken the RESTRICTIVE deny on `tp.decisions`** in smokin-ops migrations. The whole point is that it cannot be shadowed.
 5. **Never share the service_role key with this dashboard.** It only ever uses the anon key. The harness CLI uses service_role.

@@ -1,5 +1,5 @@
 # aof-eval — canonical command front door (wraps package.json scripts)
-.PHONY: help install dev build start lint test
+.PHONY: help install dev build start lint test smoke
 
 help:		## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-10s %s\n",$$1,$$2}'
@@ -26,3 +26,6 @@ verify: check	## the cold-agent verify gate: runs without install. Use 'make lin
 	@echo "verify: banned-token gate passed. Run 'make install && make lint' for the full Next.js lint."
 
 test: verify	## alias for verify (no unit-test suite; the banned-token gate + next lint are the gates)
+
+smoke:		## live PTU-19 /api/rules window check (AOF_EVAL_BASE_URL override)
+	bash tests/smoke/api-rules-ptu19.sh "$${AOF_EVAL_BASE_URL:-https://aof-eval.vercel.app}"

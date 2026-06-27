@@ -48,34 +48,44 @@ async function fetchRules() {
   const windows = [7, 30, 60];
   const now = new Date();
 
-  const [rulesResult, ...windowResults] = await Promise.all([
-    client
-      .from("rules")
-      .select(
-        "rule_id, rule_name, rule_type, repo, lifecycle_state, load_bearing_rare, denominator_type, provenance_event"
-      )
-      .eq("lifecycle_state", "active")
-      .order("rule_id"),
-    ...windows.map((days) => {
-      const since = new Date(now.getTime() - days * 86400000)
-        .toISOString()
-        .slice(0, 10);
-      // Aggregate on the DB side — avoids PostgREST's 1000-row default cap
-      // that silently zeroed out 30d/60d counts when total rows exceeded the limit.
-      return client.from("opportunities").select("rule_id, n:count(*)").gte("session_date", since);
-    }),
-  ]);
+  // Get active rules first — counts require rule_ids, so this is sequential.
+  const rulesResult = await client
+    .from("rules")
+    .select(
+      "rule_id, rule_name, rule_type, repo, lifecycle_state, load_bearing_rare, denominator_type, provenance_event"
+    )
+    .eq("lifecycle_state", "active")
+    .order("rule_id");
 
   if (rulesResult.error || !rulesResult.data) return [];
 
+  // PostgREST on this project disallows aggregate functions for the anon role,
+  // and the 1000-row default cap makes raw row fetches unusable for 30d/60d windows
+  // (94k+ total rows; PTU-19 alone has 13k). Use HEAD requests instead: each returns
+  // only the Content-Range header with the exact count — no body transfer.
+  const sinceByWindow: Record<number, string> = {};
+  for (const days of windows) {
+    sinceByWindow[days] = new Date(now.getTime() - days * 86400000).toISOString().slice(0, 10);
+  }
+
+  const countEntries = await Promise.all(
+    rulesResult.data.flatMap((r) =>
+      windows.map(async (days) => {
+        const { count } = await client
+          .from("opportunities")
+          .select("*", { count: "exact", head: true })
+          .eq("rule_id", r.rule_id)
+          .gte("session_date", sinceByWindow[days]);
+        return { rule_id: r.rule_id, days, n: count ?? 0 };
+      })
+    )
+  );
+
   const counts: Record<string, Record<number, number>> = {};
-  windows.forEach((days, idx) => {
-    const rows = (windowResults[idx].data ?? []) as unknown as { rule_id: string; n: string | number }[];
-    for (const row of rows) {
-      if (!counts[row.rule_id]) counts[row.rule_id] = {};
-      counts[row.rule_id][days] = Number(row.n ?? 0);
-    }
-  });
+  for (const { rule_id, days, n } of countEntries) {
+    if (!counts[rule_id]) counts[rule_id] = {};
+    counts[rule_id][days] = n;
+  }
 
   return rulesResult.data.map((r) => ({
     ...r,

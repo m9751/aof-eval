@@ -60,7 +60,9 @@ async function fetchRules() {
       const since = new Date(now.getTime() - days * 86400000)
         .toISOString()
         .slice(0, 10);
-      return client.from("opportunities").select("rule_id").gte("session_date", since);
+      // Aggregate on the DB side — avoids PostgREST's 1000-row default cap
+      // that silently zeroed out 30d/60d counts when total rows exceeded the limit.
+      return client.from("opportunities").select("rule_id, n:count(*)").gte("session_date", since);
     }),
   ]);
 
@@ -68,10 +70,10 @@ async function fetchRules() {
 
   const counts: Record<string, Record<number, number>> = {};
   windows.forEach((days, idx) => {
-    const rows = windowResults[idx].data ?? [];
+    const rows = (windowResults[idx].data ?? []) as unknown as { rule_id: string; n: string | number }[];
     for (const row of rows) {
       if (!counts[row.rule_id]) counts[row.rule_id] = {};
-      counts[row.rule_id][days] = (counts[row.rule_id][days] ?? 0) + 1;
+      counts[row.rule_id][days] = Number(row.n ?? 0);
     }
   });
 

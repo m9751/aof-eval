@@ -24,7 +24,7 @@ async function getData(): Promise<{
       )
       .gte(
         "session_date",
-        new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
       )
       .order("session_date", { ascending: false }),
     fetchRules(),
@@ -162,13 +162,13 @@ export default async function Page() {
         <>
           <section>
             <h2 className="text-lg font-semibold mb-2 text-slate-900">
-              Rule adherence trend (14d)
+              Rule adherence trend (30d)
             </h2>
             <RuleAdherenceChart sessions={sessions} />
           </section>
           <section>
             <h2 className="text-lg font-semibold mb-2 text-slate-900">
-              Session cost (14d)
+              Session cost (30d)
             </h2>
             <CostTrendChart sessions={sessions} />
           </section>

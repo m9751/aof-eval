@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 export const revalidate = 60;
 
 export async function GET() {
-  const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     .toISOString()
     .slice(0, 10);
   // Explicit columns only — never SELECT *. The `handoff_path` column was

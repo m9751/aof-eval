@@ -160,24 +160,33 @@ export default async function Page() {
       {/* ── RULE ADHERENCE + COST (legacy harness data, if any) ─────────────── */}
       {sessions.length > 0 && (
         <>
-          <section>
-            <h2 className="text-lg font-semibold mb-2 text-slate-900">
+          <details open>
+            <summary className="cursor-pointer text-lg font-semibold text-slate-900 mb-2 list-none flex items-center gap-1">
+              <span className="text-slate-400 text-sm select-none">▸</span>
               Rule adherence trend (30d)
-            </h2>
-            <RuleAdherenceChart sessions={sessions} />
-          </section>
-          <section>
-            <h2 className="text-lg font-semibold mb-2 text-slate-900">
+            </summary>
+            <div className="mt-2">
+              <RuleAdherenceChart sessions={sessions} />
+            </div>
+          </details>
+          <details>
+            <summary className="cursor-pointer text-lg font-semibold text-slate-900 mb-2 list-none flex items-center gap-1">
+              <span className="text-slate-400 text-sm select-none">▸</span>
               Session cost (30d)
-            </h2>
-            <CostTrendChart sessions={sessions} />
-          </section>
-          <section>
-            <h2 className="text-lg font-semibold mb-2 text-slate-900">
+            </summary>
+            <div className="mt-2">
+              <CostTrendChart sessions={sessions} />
+            </div>
+          </details>
+          <details>
+            <summary className="cursor-pointer text-lg font-semibold text-slate-900 mb-2 list-none flex items-center gap-1">
+              <span className="text-slate-400 text-sm select-none">▸</span>
               Sessions
-            </h2>
-            <SessionTable sessions={sessions} />
-          </section>
+            </summary>
+            <div className="mt-2">
+              <SessionTable sessions={sessions} />
+            </div>
+          </details>
         </>
       )}
 

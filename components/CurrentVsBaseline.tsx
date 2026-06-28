@@ -86,6 +86,12 @@ export function CurrentVsBaseline({
 
   const rows: MetricRow[] = [
     {
+      label: "Sessions graded",
+      current: latestRun.sessions_graded,
+      baseline: baseline.sessions,
+      decimals: 0,
+    },
+    {
       label: "Mean composite (0–10)",
       current: latestRun.mean_composite,
       baseline: baseline.meanComposite,
@@ -102,12 +108,6 @@ export function CurrentVsBaseline({
       current: latestRun.mean_plan_delivery,
       baseline: baseline.meanPlanDelivery,
       decimals: 2,
-    },
-    {
-      label: "Sessions graded",
-      current: latestRun.sessions_graded,
-      baseline: baseline.sessions,
-      decimals: 0,
     },
   ];
 

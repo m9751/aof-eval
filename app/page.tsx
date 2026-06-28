@@ -22,10 +22,6 @@ async function getData(): Promise<{
       .select(
         "id, run_id, session_date, machine, rule_adherence_score, plan_delivery_score, session_cost_usd, composite_score, created_at"
       )
-      .gte(
-        "session_date",
-        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-      )
       .order("session_date", { ascending: false }),
     fetchRules(),
   ]);
@@ -163,7 +159,7 @@ export default async function Page() {
           <details open>
             <summary className="cursor-pointer text-lg font-semibold text-slate-900 mb-2 list-none flex items-center gap-1">
               <span className="text-slate-400 text-sm select-none">▸</span>
-              Rule adherence trend (30d)
+              Rule adherence trend (all time)
             </summary>
             <div className="mt-2">
               <RuleAdherenceChart sessions={sessions} />
@@ -172,7 +168,7 @@ export default async function Page() {
           <details>
             <summary className="cursor-pointer text-lg font-semibold text-slate-900 mb-2 list-none flex items-center gap-1">
               <span className="text-slate-400 text-sm select-none">▸</span>
-              Session cost (30d)
+              Session cost (all time)
             </summary>
             <div className="mt-2">
               <CostTrendChart sessions={sessions} />
